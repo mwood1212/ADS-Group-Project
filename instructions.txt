@@ -1,0 +1,1 @@
+put amazon_reviews_us_Grocery_v1_00.tsv in one folder above ADS-Group-Project. (as seen in instructions.png)
