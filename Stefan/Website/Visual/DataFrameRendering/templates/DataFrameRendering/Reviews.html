@@ -1,0 +1,124 @@
+<!-- Write HTML code here -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>TableView - Startup</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <h2 class="text-center"><u>Review Data</u></h2><br>
+    <button id="myClickButton" type="button" onclick="alert('This worked')">Click</button>
+<form action="/reviews/" method="get">
+    <label for="review_id">review_id </label>
+    <input id="review_id" type="text" name="review_id" value="{{ review_id_param }}">
+    <p></p>
+    <label for="product_id">product_id </label>
+    <input id="product_id" type="text" name="product_id" value="{{ product_id_param }}">
+    <p></p>
+    <label for="product_parent">product_parent </label>
+    <input id="product_parent" type="text" name="product_parent" value="{{ product_parent_param }}">
+    <p></p>
+    <label for="product_title">product_title </label>
+    <input id="product_title" type="text" name="product_title" value="{{ product_title_param }}">
+    <p></p>
+    <label for="star_rating_min">star_rating_min </label>
+    <input id="star_rating_min" type="number" name="star_rating_min" value="{{ star_rating_min_param }}">
+    <label for="star_rating_max">star_rating_max </label>
+    <input id="star_rating_max" type="number" name="star_rating_max" value="{{ star_rating_max_param }}">
+    <p></p>
+    <label for="helpful_votes_min">helpful_votes_min</label>
+    <input id="helpful_votes_min" type="number" name="helpful_votes_min" value="{{helpful_votes_min_param }}">
+    <label for="helpful_votes_max">helpful_votes_max </label>
+    <input id="helpful_votes_max" type="number" name="helpful_votes_max" value="{{ helpful_votes_max_param }}">
+    <p></p>
+    <label for="total_votes_min">total_votes_min</label>
+    <input id="total_votes_min" type="number" name="total_votes_min" value="{{total_votes_min_param }}">
+    <label for="total_votes_max">total_votes_max </label>
+    <input id="total_votes_max" type="number" name="total_votes_max" value="{{ total_votes_max_param }}">
+    <p>Vine program</p>
+    <input id="Both" type="radio" name="vine" value="{{ both_param }}">
+    <label for="Both">Both </label>
+    <input id="Yes" type="radio" name="vine" value="{{ both_param }}">
+    <label for="Yes">Yes </label>
+    <input id="No" type="radio" name="vine" value="{{ both_param }}">
+    <label for="No">No </label>
+    <p>Verified purchase</p>
+    <input id="Both" type="radio" name="Verified purchase" value="{{ Verified_purchase_param }}">
+    <label for="Both">Both </label>
+    <input id="Yes" type="radio" name="Verified purchase" value="{{ Verified_purchase_param }}">
+    <label for="Yes">Yes </label>
+    <input id="No" type="radio" name="Verified purchase" value="{{ Verified_purchase_param }}">
+    <label for="No">No </label>
+    <p></p>
+    <label for="review_headline">review_headline </label>
+    <input id="review_headline" type="text" name="review_headline" value="{{ review_headline_param }}">
+    <p></p>
+    <label for="review_body">review_body </label>
+    <input id="review_body" type="text" name="review_body" value="{{ review_body_param }}">
+    <p></p>
+    <label for="review_body">review_body </label>
+    <input id="review_body" type="text" name="review_body" value="{{ review_body_param }}">
+    <p></p>
+    <label for="start">Start date:</label>
+
+    <input type="date" id="start" name="start date"
+       value="{{ start_date_param }}"
+       min="1990-01-01" max="2022-01-01">
+        <p></p>
+    <label for="start">Start date:</label>
+    <input type="date" id="end" name="end date" value="{{ end_date_param }}" min="1990-01-01" max="2022-01-01">
+        <p></p>
+    <label for="num">Num: </label>
+    <input id="num" type="number" name="num" value="{{ num_param }}">
+    <p></p>
+    <input type="submit" value="Search">
+</form>
+  <table class="table table-dark table-striped">
+    <thead>
+        <tr>
+            <th onclick="alert('help')">Customer_id</th>
+            <th>review_id</th>
+            <th>product_id</th>
+            <th>product_parent</th>
+            <th>product_title</th>
+            <th>star_rating</th>
+            <th>helpful_votes</th>
+            <th>total_votes</th>
+            <th>vine</th>
+            <th>verified_purchase</th>
+            <th>review_headline</th>
+            <th>review_body</th>
+            <th>review_date</th>
+        </tr>
+    </thead>
+    <tbody>
+<!-- If data exists iterate through and set links and column values -->
+{%if data%}
+{%for i in data%}
+<tr>
+    <td>{{i.customer_id}}</td>
+    <td>{{i.review_id}}</td>
+    <td><a href={{ i.link }}>{{i.product_id}}</a></td>
+    <td>{{i.product_parent}}</td>
+    <td>{{i.product_title}}</td>
+    <td>{{i.star_rating}}</td>
+    <td>{{i.helpful_votes}}</td>
+    <td>{{i.total_votes}}</td>
+    <td>{{i.vine}}</td>
+    <td>{{i.verified_purchase}}</td>
+    <td>{{i.review_headline}}</td>
+    <td>{{i.review_body}}</td>
+    <td>{{i.review_date}}</td>
+</tr>
+{%endfor%}
+{%endif%}
+</tbody>
+</table>
+</div>
+</body>
+</html>
