@@ -15,7 +15,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from DataFrameRendering import views
-from DataFrameRendering.views import PublisherList
   
 urlpatterns = [
     path('admin/', admin.site.urls),
