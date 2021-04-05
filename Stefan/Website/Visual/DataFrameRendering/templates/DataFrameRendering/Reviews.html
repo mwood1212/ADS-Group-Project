@@ -4,66 +4,69 @@
 <head>
   <title>TableView - Startup</title>
   <meta charset="utf-8">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+  {% include "DataFrameRendering/StyleSheets.html" %}
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
 </head>
 <body>
-<div class="container">
+<div class="w3-content" style="max-width:2000px;margin-top:46px">
+{% include "DataFrameRendering/NavBar.html" %}
   <h2 class="text-center"><u>Review Data</u></h2><br>
-    <button id="myClickButton" type="button" onclick="alert('This worked')">Click</button>
-<form action="/reviews/" method="get">
+<form action="/reviews/" method="get" style="margin-left:50px;column-count: 3;">
     <label for="customer_id">customer_id </label>
     <input id="customer_id" type="text" name="customer_id" value="{{ customer_id_param }}">
-    <p></p>
+    </br>
     <label for="review_id">review_id </label>
     <input id="review_id" type="text" name="review_id" value="{{ review_id_param }}">
-    <p></p>
+    </br>
     <label for="product_id">product_id </label>
     <input id="product_id" type="text" name="product_id" value="{{ product_id_param }}">
-    <p></p>
+    </br>
     <label for="product_parent">product_parent </label>
     <input id="product_parent" type="text" name="product_parent" value="{{ product_parent_param }}">
-    <p></p>
+    </br>
     <label for="product_title">product_title </label>
     <input id="product_title" type="text" name="product_title" value="{{ product_title_param }}">
-    <p></p>
+    </br>
     <label for="star_rating_min">star_rating_min </label>
     <input id="star_rating_min" type="number" name="star_rating_min" value="{{ star_rating_min_param }}">
+    </br>
     <label for="star_rating_max">star_rating_max </label>
     <input id="star_rating_max" type="number" name="star_rating_max" value="{{ star_rating_max_param }}">
-    <p></p>
+    </br>
     <label for="helpful_votes_min">helpful_votes_min</label>
     <input id="helpful_votes_min" type="number" name="helpful_votes_min" value="{{helpful_votes_min_param }}">
+    </br>
     <label for="helpful_votes_max">helpful_votes_max </label>
     <input id="helpful_votes_max" type="number" name="helpful_votes_max" value="{{ helpful_votes_max_param }}">
-    <p></p>
+    </br>
     <label for="total_votes_min">total_votes_min</label>
     <input id="total_votes_min" type="number" name="total_votes_min" value="{{total_votes_min_param }}">
+    </br>
     <label for="total_votes_max">total_votes_max </label>
     <input id="total_votes_max" type="number" name="total_votes_max" value="{{ total_votes_max_param }}">
-    <p>Vine program</p>
+    <p>Vine program : </p>
     <input id="Both_vine" type="radio" name="vine" value="Both" checked>
     <label for="Both_vine">Both </label>
     <input id="Yes_vine" type="radio" name="vine" value="Y">
     <label for="Yes_vine">Yes </label>
     <input id="No_vine" type="radio" name="vine" value="N">
     <label for="No_vine">No </label>
-    <p>Verified purchase</p>
+    <p>Verified purchase : </p>
     <input id="Both" type="radio" name="Verified_purchase" value="Both" checked>
     <label for="Both">Both </label>
     <input id="Yes" type="radio" name="Verified_purchase" value="Y">
     <label for="Yes">Yes </label>
     <input id="No" type="radio" name="Verified_purchase" value="N">
     <label for="No">No </label>
-    <p></p>
+    </br>
     <label for="review_headline">Review Headline : </label>
     <input id="review_headline" type="text" name="review_headline" value="{{ review_headline_param }}">
-    <p></p>
+    </br>
     <label for="review_body">Review Body : </label>
     <input id="review_body" type="text" name="review_body" value="{{ review_body_param }}">
-    <p></p>
+    </br>
     <label for="start">Start date : </label>
 
     <input type="date" id="start" name="start_date"
@@ -82,19 +85,19 @@
   <table class="table table-dark table-striped">
     <thead>
         <tr>
-            <th onclick="alert('help')">Customer_id</th>
-            <th>review_id</th>
-            <th>product_id</th>
-            <th>product_parent</th>
-            <th>product_title</th>
-            <th>star_rating</th>
-            <th>helpful_votes</th>
-            <th>total_votes</th>
-            <th>vine</th>
-            <th>verified_purchase</th>
-            <th>review_headline</th>
-            <th>review_body</th>
-            <th>review_date</th>
+            <th>Customer ID</th>
+            <th>Review ID</th>
+            <th>Product ID</th>
+            <th>Product Parent</th>
+            <th>Product Title</th>
+            <th>Star Rating</th>
+            <th>Helpful Votes</th>
+            <th>Total Votes</th>
+            <th>Vine</th>
+            <th>Verified Purchase</th>
+            <th>Review Headline</th>
+            <th>Review Body</th>
+            <th>Review Date</th>
         </tr>
     </thead>
     <tbody>
@@ -121,5 +124,6 @@
 </tbody>
 </table>
 </div>
+{% include "DataFrameRendering/Footer.html" %}
 </body>
 </html>

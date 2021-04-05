@@ -304,10 +304,10 @@
 </html>-->
 
 <!--For testing -->
-<link href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css" rel="stylesheet">
+{% include "DataFrameRendering/StyleSheets.html" %}
 
 <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.js"></script>
-
+{% include "DataFrameRendering/NavBar.html" %}
 <table
   data-toggle="table"
   data-search="true"
@@ -368,3 +368,4 @@
     </tr>
   </tbody>
 </table>
+{% include "DataFrameRendering/Footer.html" %}

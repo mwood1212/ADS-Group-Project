@@ -200,6 +200,9 @@ def get_reviews(request):
     data = json.loads(json_records)
 
     context['data'] = data
+    context["homeurl"] = webpageUrl + "/"
+    context["reviewsurl"] = webpageUrl + "/reviews"
+    context["productsurl"] = webpageUrl + "/products"
     print("About to render")
     return render(request, 'DataFrameRendering/Reviews.html', context)
 
@@ -330,6 +333,9 @@ def get_products(request):
     # creats a context dictonary
 
     context['data'] = data
+    context["homeurl"] = webpageUrl + "/"
+    context["reviewsurl"] = webpageUrl + "/reviews"
+    context["productsurl"] = webpageUrl + "/products"
     return render(request, 'DataFrameRendering/Products.html', context)
 
 
@@ -361,7 +367,18 @@ def get_product_with_id(request):
 
     context["reviewData"] = review_data
     context["data"] = product_data
+    context["homeurl"] = webpageUrl + "/"
+    context["reviewsurl"] = webpageUrl + "/reviews"
+    context["productsurl"] = webpageUrl + "/products"
     return render(request, 'DataFrameRendering/SingleProduct.html', context)
+
+def get_homepage(request):
+    context = {}
+    context["homeurl"] = webpageUrl + "/"
+    context["reviewsurl"] = webpageUrl + "/reviews"
+    context["productsurl"] = webpageUrl + "/products"
+    return render(request, 'DataFrameRendering/Homepage.html', context)
+
 
 
 """

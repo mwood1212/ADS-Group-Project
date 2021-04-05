@@ -1,4 +1,3 @@
-
 """
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.0/topics/http/urls/Examples:
@@ -15,13 +14,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from DataFrameRendering import views
-  
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    #todo add homepage
-    path('', views.get_reviews, name ="table"),
-    path('reviews/', views.get_reviews, name ="table"),
-    path('products/', views.get_products, name ="productTable"),
+    path('', views.get_homepage, name="table"),
+    path('reviews/', views.get_reviews, name="table"),
+    path('products/', views.get_products, name="productTable"),
     path('product/', views.get_product_with_id, name="ProductSpecific"),
-    path('test/',views.ProductView,name="ProductSpecific"),
+    path('test/', views.ProductView, name="ProductSpecific"),
 ]
