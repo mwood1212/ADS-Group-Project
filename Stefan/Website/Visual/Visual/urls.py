@@ -21,5 +21,6 @@ urlpatterns = [
     path('reviews/', views.get_reviews, name="table"),
     path('products/', views.get_products, name="productTable"),
     path('product/', views.get_product_with_id, name="ProductSpecific"),
+    path('upload/', views.upload_file, name="upload_file"),
     path('test/', views.ProductView, name="ProductSpecific"),
 ]

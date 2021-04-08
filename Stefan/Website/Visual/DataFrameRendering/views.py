@@ -1,86 +1,21 @@
 from django.shortcuts import HttpResponse
 from django.shortcuts import render
-import pandas
+
 from django.views.generic import ListView
 import json
-from django import forms
-import datetime
+import DataFrameRendering.apps as apps
 import numpy as np
 from DataFrameRendering.models import ReviewData
+from django import forms
 
-"""
-Defines the 2 global variables that store the dataframes of the review data and a product data csv file I made
-"""
-ReviewDataFrame = None
-ProductDataFrame = None
+# todo add a method to add links
 """
 The url of the webpage. Here so it can changed easily later
 """
 # todo change
 webpageUrl = "http://127.0.0.1:8000"
 
-"""
-Loads the DataFrames from the files
-:param fileName: The string path to the file
-:param Tsv: a bool of whether to use the \t seperator needed for tsv files. If false then it assumes a csv file
-:return: a dataframe containing the data
-"""
-
-
-def load_data(fileName, Tsv):
-    print("Loading data from file " + fileName)
-    if Tsv:
-        return pandas.read_csv(fileName, sep='\t', header=0, error_bad_lines=False)
-    else:
-        return pandas.read_csv(fileName, header=0, error_bad_lines=False)
-
-
-"""
-Preprocess the dataFrames by ensuring
-1) drop any rows with Nan in
-2) reset column indexs
-3) drop marketplace and product_category as they are pointless
-4) ensure all star ratings are the same type int
-5) make customer id and product parent as the type strings
-6) if not quick then change dates to a datetime object instead of string
-:param dataFrame: the dataframe that should be processed
-:param quick: if it should run operations that take a lot longer - can take more time to convert dates then to actually load the data!
-:return: a proccssed data frame
-"""
-
-
-def pre_process_data_frame(dataFrame, quick=True):
-    df = dataFrame.dropna()
-    df = df.reset_index(drop=True)
-    df = df.drop(columns=['marketplace', 'product_category'])
-    df['star_rating'] = df['star_rating'].astype(int)
-    df['customer_id'] = df['customer_id'].astype(str)
-    df['product_parent'] = df['product_parent'].astype(str)
-    if not quick:
-        df['review_date'].map(lambda a: datetime.strptime(a, "%Y-%m-%d"))
-    return df
-
-
-"""
-This ensures that the data needed for the function is loaded before and cached.
-Note the product data frame is sorted by score
-:param reviewData: a bool of if reviewData should be loaded in order to speed up the request if it is not needed
-:param ProductData:  a bool of if productData should be loaded in order to speed up the request if it is not needed
-"""
-
-
-def ensure_data_loaded(reviewData=True, ProductData=True):
-    global ReviewDataFrame
-    global ProductDataFrame
-    if ReviewDataFrame is None and reviewData:
-        ReviewDataFrame = load_data("datav1.tsv", Tsv=True)
-        ReviewDataFrame = pre_process_data_frame(ReviewDataFrame, True)
-    if ProductDataFrame is None and ProductData:
-        ProductDataFrame = load_data("ProductDataFrame.csv", Tsv=False)
-        ProductDataFrame = ProductDataFrame.sort_values(["scores"])
-
-
-#todo add date filtering
+# todo add date filtering
 """
 filters the dataframe and only selects the rows in the dataframe that meet the criteria
 :param ReviewDataFrame: A dataframe of all of the reviews
@@ -88,11 +23,11 @@ filters the dataframe and only selects the rows in the dataframe that meet the c
 :return: A filtered set of data that contains the correct data for the parameters
 """
 
-def filter_Data_Frame(ReviewDataFrame, context):
 
+def filter_Data_Frame(ReviewDataFrame, context):
     print("Filtering data")
 
-    filteredDataFrame = ReviewDataFrame.copy()
+    filteredDataFrame = apps.ReviewDataFrame.copy()
     param = '_param'
 
     customer_id_param = context["customer_id" + param]
@@ -117,7 +52,7 @@ def filter_Data_Frame(ReviewDataFrame, context):
 
     star_rating_min_param = context["star_rating_min" + param]
     if star_rating_min_param != 1:
-        filteredDataFrame = filteredDataFrame[filteredDataFrame['star_rating'] >= star_rating_min_param ]
+        filteredDataFrame = filteredDataFrame[filteredDataFrame['star_rating'] >= star_rating_min_param]
 
     star_rating_max_param = context["star_rating_max" + param]
     if star_rating_max_param != 5:
@@ -161,8 +96,8 @@ def filter_Data_Frame(ReviewDataFrame, context):
 
     print("Finished filtering data")
     numberPerPage = context['number_per_page' + param]
-    pageNum = max(int(context['page_num' + param]),1)
-    return filteredDataFrame[(pageNum-1)*numberPerPage :numberPerPage*pageNum ]
+    pageNum = max(int(context['page_num' + param]), 1)
+    return filteredDataFrame[(pageNum - 1) * numberPerPage:numberPerPage * pageNum]
 
 
 """
@@ -173,17 +108,15 @@ Displays the table for the reviews as well as the search
 
 
 def get_reviews(request):
-    global ReviewDataFrame
-    global ProductDataFrame
     global webpageUrl
 
-    ensure_data_loaded()
+    # ensure_data_loaded()
     # creates a context object dictoniary to use
     context = create_context(request)
 
     # seperated for testing if parameter is a then load 10 results
 
-    filteredDataFrame = filter_Data_Frame(ReviewDataFrame, context)
+    filteredDataFrame = filter_Data_Frame(apps.ReviewDataFrame, context)
 
     print("Starting adding links")
     # add a links feild so it can be used in the html to use the link
@@ -200,9 +133,6 @@ def get_reviews(request):
     data = json.loads(json_records)
 
     context['data'] = data
-    context["homeurl"] = webpageUrl + "/"
-    context["reviewsurl"] = webpageUrl + "/reviews"
-    context["productsurl"] = webpageUrl + "/products"
     print("About to render")
     return render(request, 'DataFrameRendering/Reviews.html', context)
 
@@ -216,8 +146,9 @@ Creates a context with all of the arguments from the url
 
 
 def create_context(request):
+    global webpageUrl
     param = "_param"
-    dict_of_parameters = {'customer_id' + param: request.GET.get("customer_id",""),
+    dict_of_parameters = {'customer_id' + param: request.GET.get("customer_id", ""),
                           'review_id' + param: request.GET.get("review_id", ""),
                           'product_id' + param: request.GET.get("product_id", ""),
                           'product_parent' + param: request.GET.get("product_parent", ""),
@@ -235,8 +166,13 @@ def create_context(request):
                           'start_date' + param: request.GET.get("start_date", "dd/mm/yyyy"),
                           'end_date' + param: request.GET.get("end_date", "dd/mm/yyyy"),
                           'number_per_page' + param: request.GET.get("number_per_page", 100),
-                          'page_num' + param: request.GET.get("page_num", 1)}
-    star_ratings = [1,2,3,4,5,"1","2","3","4","5"]
+                          'page_num' + param: request.GET.get("page_num", 1),
+                          "home_url": webpageUrl + "/",
+                          "reviews_url": webpageUrl + "/reviews",
+                          "products_url": webpageUrl + "/products",
+                          "upload_files_url": webpageUrl + "/upload",
+                          }
+    star_ratings = [1, 2, 3, 4, 5, "1", "2", "3", "4", "5"]
     if dict_of_parameters['star_rating_min' + param] == "":
         dict_of_parameters['star_rating_min' + param] = 1
     elif dict_of_parameters['star_rating_min' + param] not in star_ratings:
@@ -283,7 +219,6 @@ def create_context(request):
         except:
             dict_of_parameters['total_votes_max' + param] = float('inf')
 
-
     if dict_of_parameters['number_per_page' + param] == "":
         dict_of_parameters['number_per_page' + param] = 100
     else:
@@ -310,13 +245,10 @@ Displays the table for the products
 
 
 def get_products(request):
-    global ReviewDataFrame
-    global ProductDataFrame
-
-    ensure_data_loaded(reviewData=False)
+    # ensure_data_loaded(reviewData=False)
     context = create_context(request)
 
-    df = ProductDataFrame[:100]
+    df = apps.ProductDataFrame[:100]
 
     # add a links feild so it can be used in the html to use the link
     links = []
@@ -333,9 +265,6 @@ def get_products(request):
     # creats a context dictonary
 
     context['data'] = data
-    context["homeurl"] = webpageUrl + "/"
-    context["reviewsurl"] = webpageUrl + "/reviews"
-    context["productsurl"] = webpageUrl + "/products"
     return render(request, 'DataFrameRendering/Products.html', context)
 
 
@@ -347,38 +276,84 @@ This displays the info for a product with an id
 
 
 def get_product_with_id(request):
-    global ReviewDataFrame
-    global ProductDataFrame
-
-    ensure_data_loaded()
+    # ensure_data_loaded()
     context = create_context(request)
 
     # generate data for the review
-    row_number = ProductDataFrame['product_id'] == request.GET.get("id", "b")
-    json_records = ProductDataFrame[row_number].reset_index().to_json(orient='records')
+    row_number = apps.ProductDataFrame['product_id'] == request.GET.get("id", "b")
+    json_records = apps.ProductDataFrame[row_number].reset_index().to_json(orient='records')
     product_data = json.loads(json_records)
 
     # generate data for the product
-    row_numbers_review = ReviewDataFrame['product_id'] == request.GET.get("id", "b")
-    json_records = ReviewDataFrame[row_numbers_review].reset_index().to_json(orient='records')
+    row_numbers_review = apps.ReviewDataFrame['product_id'] == request.GET.get("id", "b")
+    json_records = apps.ReviewDataFrame[row_numbers_review].reset_index().to_json(orient='records')
     review_data = json.loads(json_records)
 
     # generate context dictionary
 
     context["reviewData"] = review_data
     context["data"] = product_data
-    context["homeurl"] = webpageUrl + "/"
-    context["reviewsurl"] = webpageUrl + "/reviews"
-    context["productsurl"] = webpageUrl + "/products"
     return render(request, 'DataFrameRendering/SingleProduct.html', context)
 
+
+"""
+This displays the homepage of the website
+:param request: the request made to the server
+:return: a render object that will be displayed on the browser
+"""
+
+
 def get_homepage(request):
-    context = {}
-    context["homeurl"] = webpageUrl + "/"
-    context["reviewsurl"] = webpageUrl + "/reviews"
-    context["productsurl"] = webpageUrl + "/products"
+    context = create_context(request)
     return render(request, 'DataFrameRendering/Homepage.html', context)
 
+
+"""
+This class is a file form that takes in 2 file inputs which are then uploaded and set as the new data
+"""
+
+
+class UploadFileForm(forms.Form):
+    ReviewDataFile = forms.FileField()
+    ProductDataFile = forms.FileField()
+
+
+"""
+ This method serves the upload file page. If it recieves files then it saves them and loads the new data
+:param request: the request made to the server
+:return: a render object that will be displayed on the browser
+"""
+
+
+def upload_file(request):
+    context = create_context(request)
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            print("Valid")
+            handle_uploaded_file(request.FILES['ReviewDataFile'], 'reviewData.tsv')
+            handle_uploaded_file(request.FILES['ProductDataFile'], 'productData.csv')
+            apps.loadNewData('reviewData.tsv', 'productData.csv')
+            return render(request, 'DataFrameRendering/Upload.html', context)
+        else:
+            print("Not Valid")
+    else:
+        form = UploadFileForm()
+        context["form"] = form
+    return render(request, 'DataFrameRendering/Upload.html', context)
+
+
+"""
+This handles saving a file from an upload to the server. It saves it in this directory as the filename.
+:param f: the file object so save
+:param fileName: String what to save the file as
+"""
+
+
+def handle_uploaded_file(f, fileName):
+    with open(fileName, 'wb+') as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
 
 
 """
@@ -391,8 +366,8 @@ For testing
 
 
 def ProductView(request):
-    ensure_data_loaded(reviewData=False)
-    df = ProductDataFrame
+    # ensure_data_loaded(reviewData=False)
+    df = apps.ProductDataFrame
     template = 'DataFrameRendering/product.html'
 
     # Format the column headers for the Bootstrap table, they're just a list of field names,

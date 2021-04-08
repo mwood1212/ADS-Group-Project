@@ -42,6 +42,7 @@ For testing
 """
 
 
+
 class ReviewData(models.Model):
     customer_id = models.CharField(max_length=20,default="None")
     review_id = models.CharField(max_length=20,default="None",unique=True)
@@ -59,3 +60,5 @@ class ReviewData(models.Model):
 
     def __str__(self):
         return self.review_id
+
+

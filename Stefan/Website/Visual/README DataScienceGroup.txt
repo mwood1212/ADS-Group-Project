@@ -6,9 +6,11 @@ Following on from that you will also need to place a copy of the tsv with a name
 To run the website please run the following command python manage.py runserver from this directory
 To find the available urls check out Visual/urls.py
 The web request has to load up the review data and the product data which can take a while so you will have to wait and
-it will do this anytime you make changes
+it will do this anytime you make changes to any python files
 
 To add a html template place it in DataFrameRendering/templates/DataFrameRendering as a html file. Css and Js can also be placed here.
 
 To add a new page first add a new method in views.py that takes a request and then return a render method with a content,template and context
 Then in urls add a new url and set it to that new method
+
+All of the data is loaded from apps.py which runs once upon the server starting up and once for every 2 valid file uploads
