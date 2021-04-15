@@ -1,5 +1,6 @@
 In order for all of this to work you will need to install python 3.9, Django and some other python modules
-You will also need to generate a ProductDataFrame.csv file which you can do by running the following - python GenerateProductDataFrame.py
+You will also need to generate a ProductDataFrame.csv and CustomerDataFrame.csv file which you can do by running the following -
+python GenerateProductDataFrame.py
 It will print some numbers as it works so that you know it is still running but it can take a while still
 The reason I have not committed it is due to github large file restrictions so also ensure you do not commit it to github
 Following on from that you will also need to place a copy of the tsv with a name of datav1.tsv in this folder
@@ -13,4 +14,4 @@ To add a html template place it in DataFrameRendering/templates/DataFrameRenderi
 To add a new page first add a new method in views.py that takes a request and then return a render method with a content,template and context
 Then in urls add a new url and set it to that new method
 
-All of the data is loaded from apps.py which runs once upon the server starting up and once for every 2 valid file uploads
+All of the data is loaded from apps.py which runs once upon the server starting up and once for every 3 valid file uploads

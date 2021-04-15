@@ -20,7 +20,9 @@ urlpatterns = [
     path('', views.get_homepage, name="table"),
     path('reviews/', views.get_reviews, name="table"),
     path('products/', views.get_products, name="productTable"),
+    path('customers/', views.get_customers, name="customerTable"),
     path('product/', views.get_product_with_id, name="ProductSpecific"),
+    path('customer/', views.get_customer_with_id, name="CustomerSpecific"),
     path('upload/', views.upload_file, name="upload_file"),
     path('test/', views.ProductView, name="ProductSpecific"),
 ]

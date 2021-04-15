@@ -1,6 +1,7 @@
 from django.apps import AppConfig
-import pandas
+import pandas as pandas
 import datetime
+
 
 """
 Defines the 2 global variables that store the dataframes of the review data and a product data csv file I made
@@ -12,12 +13,12 @@ ProductDataFrame = None
 Loads files that are uploaded to the website
 :param newReviewDataString: The string of the filename of the new reviews file
 :param newProductDataString: The string of the filename of the new products file
+:param newCustomerDataString: The string of the filename of the new customers file
 """
 
 
-def loadNewData(newReviewDataString, newProductDataString):
-    fast = True
-    ensure_data_loaded(newReviewDataString, newProductDataString, fast)
+def loadNewData(newReviewDataString, newProductDataString, newCustomerDataString):
+    ensure_data_loaded(newReviewDataString, newProductDataString,newCustomerDataString)
 
 
 """
@@ -50,33 +51,36 @@ Preprocess the dataFrames by ensuring
 """
 
 
-def pre_process_data_frame(dataFrame, quick=True):
+def pre_process_data_frame(dataFrame):
     df = dataFrame.dropna()
     df = df.reset_index(drop=True)
     df = df.drop(columns=['marketplace', 'product_category'])
     df['star_rating'] = df['star_rating'].astype(int)
     df['customer_id'] = df['customer_id'].astype(str)
     df['product_parent'] = df['product_parent'].astype(str)
-    if not quick:
-        df['review_date'].map(lambda a: datetime.strptime(a, "%Y-%m-%d"))
+    pandas.to_datetime(df["review_date"],format="%Y-%m-%d")
     return df
 
 
 """
 This ensures that the data needed for the function is loaded before and cached.
-Note the product data frame is sorted by score
-:param reviewData: a bool of if reviewData should be loaded in order to speed up the request if it is not needed
-:param ProductData:  a bool of if productData should be loaded in order to speed up the request if it is not needed
+Note the product data frame is sorted by score and Customer data frame is sorted by the number of reivews
+:param reviewFileLocation the string location relative to this directory of where to load the data from
+:param productFileLocation the string location relative to this directory of where to load the data from
+:param customerFileLocation the string location relative to this directory of where to load the data from
 """
 
 
-def ensure_data_loaded(reviewFileLocation, productFileLocation, fast):
+def ensure_data_loaded(reviewFileLocation, productFileLocation, customerFileLocation):
     global ReviewDataFrame
     global ProductDataFrame
+    global CustomerDataFrame
     ReviewDataFrame = load_data(reviewFileLocation, Tsv=True)
-    ReviewDataFrame = pre_process_data_frame(ReviewDataFrame, fast)
+    ReviewDataFrame = pre_process_data_frame(ReviewDataFrame)
     ProductDataFrame = load_data(productFileLocation, Tsv=False)
     ProductDataFrame = ProductDataFrame.sort_values(["scores"])
+    CustomerDataFrame = load_data(customerFileLocation, Tsv=False)
+    CustomerDataFrame = CustomerDataFrame.sort_values(["count"],ascending=False)
 
 
 """
@@ -88,6 +92,5 @@ There will be no response until this is finished
 
 class DataframerenderingConfig(AppConfig):
     name = 'DataFrameRendering'
-    fast = True
-    ensure_data_loaded("datav1.tsv", "ProductDataFrame.csv", fast)
+    ensure_data_loaded("datav1.tsv", "ProductDataFrame.csv","CustomerDataFrame.csv")
     print("dataLoaded")

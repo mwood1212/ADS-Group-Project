@@ -7,6 +7,10 @@ import DataFrameRendering.apps as apps
 import numpy as np
 from DataFrameRendering.models import ReviewData
 from django import forms
+import datetime
+import matplotlib as plt
+from matplotlib.pyplot import subplots as sub
+from io import StringIO
 
 # todo add a method to add links
 """
@@ -86,6 +90,8 @@ def filter_Data_Frame(ReviewDataFrame, context):
         print(Verified_purchase_param + " Should not trigger")
         filteredDataFrame = filteredDataFrame[filteredDataFrame['verified_purchase'] == Verified_purchase_param]
 
+
+
     review_headline_param = context["review_headline" + param]
     if review_headline_param != "":
         filteredDataFrame = filteredDataFrame[filteredDataFrame['review_headline'].str.contains(review_headline_param)]
@@ -93,6 +99,25 @@ def filter_Data_Frame(ReviewDataFrame, context):
     review_body_param = context["review_body" + param]
     if review_body_param != "":
         filteredDataFrame = filteredDataFrame[filteredDataFrame['review_body'].str.contains(review_body_param)]
+
+    start_date_param = context["start_date" + param]
+    if start_date_param != "" and start_date_param != "dd/mm/yyyy":
+        pass
+        filteredDataFrame = filteredDataFrame[filteredDataFrame['review_date'] >= start_date_param]
+
+    end_date_param = context["end_date" + param]
+    if end_date_param != "" and end_date_param != "dd/mm/yyyy":
+        pass
+        filteredDataFrame = filteredDataFrame[filteredDataFrame['review_date'] <= end_date_param]
+
+    duplicate_param = context["Duplicate_reviews" + param]
+    print(duplicate_param )
+    if duplicate_param  != "Both" and duplicate_param  != "":
+        duplicates = filteredDataFrame.duplicated(subset=['review_body'], keep=False)
+        getOnlyDuplicates =  duplicate_param == "Y"
+        print(getOnlyDuplicates)
+        print("should not trigger " + duplicate_param)
+        filteredDataFrame = filteredDataFrame[duplicates == getOnlyDuplicates]
 
     print("Finished filtering data")
     numberPerPage = context['number_per_page' + param]
@@ -126,6 +151,15 @@ def get_reviews(request):
         links.append(webpageUrl + "/product/?id=" + filteredDataFrame.iloc[j, 2])
         j += 1
     filteredDataFrame["link"] = links
+    print("Added links")
+
+    # add a links feild so it can be used in the html to use the link
+    customerLinks = []
+    j = 0
+    for i, row in filteredDataFrame.iterrows():
+        customerLinks.append(webpageUrl + "/customer/?id=" + filteredDataFrame.iloc[j, 0])
+        j += 1
+    filteredDataFrame["customerLinks"] = customerLinks
     print("Added links")
 
     # convert to json
@@ -165,11 +199,13 @@ def create_context(request):
                           'review_body' + param: request.GET.get("review_body", ""),
                           'start_date' + param: request.GET.get("start_date", "dd/mm/yyyy"),
                           'end_date' + param: request.GET.get("end_date", "dd/mm/yyyy"),
+                          'Duplicate_reviews' + param: request.GET.get("Duplicate_reviews", "Both"),
                           'number_per_page' + param: request.GET.get("number_per_page", 100),
                           'page_num' + param: request.GET.get("page_num", 1),
                           "home_url": webpageUrl + "/",
                           "reviews_url": webpageUrl + "/reviews",
                           "products_url": webpageUrl + "/products",
+                          "customers_url": webpageUrl + "/customers",
                           "upload_files_url": webpageUrl + "/upload",
                           }
     star_ratings = [1, 2, 3, 4, 5, "1", "2", "3", "4", "5"]
@@ -218,6 +254,25 @@ def create_context(request):
             dict_of_parameters['total_votes_max' + param] = int(dict_of_parameters['total_votes_max' + param])
         except:
             dict_of_parameters['total_votes_max' + param] = float('inf')
+
+    try:
+        date = datetime.datetime.strptime(dict_of_parameters['start_date' + param],'%y/%m/%d')
+        if date != None:
+            dict_of_parameters['start_date' + param] = date
+        else:
+            dict_of_parameters['start_date' + param] = "dd/mm/yyyy"
+    except:
+        dict_of_parameters['start_date' + param] = "dd/mm/yyyy"
+
+
+    try:
+        date = datetime.datetime.strptime(dict_of_parameters['end_date' + param],'%y/%m/%d')
+        if date != None:
+            dict_of_parameters['end_date' + param] = date
+        else:
+            dict_of_parameters['end_date' + param] = "dd/mm/yyyy"
+    except:
+        dict_of_parameters['end_date' + param] = "dd/mm/yyyy"
 
     if dict_of_parameters['number_per_page' + param] == "":
         dict_of_parameters['number_per_page' + param] = 100
@@ -268,6 +323,37 @@ def get_products(request):
     return render(request, 'DataFrameRendering/Products.html', context)
 
 
+
+"""
+Displays the table for the customers
+:param request: the request made to the server
+:return: a render object that will be displayed on the browser
+"""
+
+
+def get_customers(request):
+    context = create_context(request)
+
+    df = apps.CustomerDataFrame[:100]
+
+    # add a links feild so it can be used in the html to use the link
+    links = []
+    j = 0
+    for i, row in df.iterrows():
+        links.append(webpageUrl + "/customer/?id=" + str(df.iloc[j, 1]))
+        j += 1
+    df["link"] = links
+
+    # parsing the DataFrame in json format.
+    json_records = df.reset_index().to_json(orient='records')
+    data = json.loads(json_records)
+
+    # creats a context dictonary
+
+    context['data'] = data
+    return render(request, 'DataFrameRendering/Customers.html', context)
+
+
 """
 This displays the info for a product with an id
 :param request: the request made to the server
@@ -286,6 +372,7 @@ def get_product_with_id(request):
 
     # generate data for the product
     row_numbers_review = apps.ReviewDataFrame['product_id'] == request.GET.get("id", "b")
+
     json_records = apps.ReviewDataFrame[row_numbers_review].reset_index().to_json(orient='records')
     review_data = json.loads(json_records)
 
@@ -293,7 +380,36 @@ def get_product_with_id(request):
 
     context["reviewData"] = review_data
     context["data"] = product_data
+    context["graph"] = plot_example_grapgh (apps.ReviewDataFrame[row_numbers_review])
     return render(request, 'DataFrameRendering/SingleProduct.html', context)
+
+
+"""
+This displays the info for a product with an id
+:param request: the request made to the server
+:return: a render object that will be displayed on the browser
+"""
+
+
+def get_customer_with_id(request):
+    # ensure_data_loaded()
+    context = create_context(request)
+
+    # generate data for the review
+    row_number = apps.CustomerDataFrame['customer_id'] == request.GET.get("id", "b")
+    json_records = apps.CustomerDataFrame[row_number].reset_index().to_json(orient='records')
+    product_data = json.loads(json_records)
+
+    # generate data for the product
+    row_numbers_review = apps.ReviewDataFrame['customer_id'] == request.GET.get("id", "b")
+    json_records = apps.ReviewDataFrame[row_numbers_review].reset_index().to_json(orient='records')
+    review_data = json.loads(json_records)
+
+    # generate context dictionary
+
+    context["reviewData"] = review_data
+    context["data"] = product_data
+    return render(request, 'DataFrameRendering/SingleCustomer.html', context)
 
 
 """
@@ -333,7 +449,8 @@ def upload_file(request):
             print("Valid")
             handle_uploaded_file(request.FILES['ReviewDataFile'], 'reviewData.tsv')
             handle_uploaded_file(request.FILES['ProductDataFile'], 'productData.csv')
-            apps.loadNewData('reviewData.tsv', 'productData.csv')
+            handle_uploaded_file(request.FILES['CustomerDataFile'], 'customerData.csv')
+            apps.loadNewData('reviewData.tsv', 'productData.csv','customerData.csv')
             return render(request, 'DataFrameRendering/Upload.html', context)
         else:
             print("Not Valid")
@@ -342,13 +459,39 @@ def upload_file(request):
         context["form"] = form
     return render(request, 'DataFrameRendering/Upload.html', context)
 
+"""
+This plots an example grapgh of time vs review score
+inputs df: Dataframe the dataframe that contains the data
+outputs data: the imgdata of the graph
+"""
+
+
+def plot_example_grapgh(df):
+    dates = []
+    scores = []
+    for index,row in df.iterrows():
+        dates.append(row['review_date'])
+        scores.append(row['star_rating'])
+    fig, ax = sub(figsize=(12, 12))
+    ax.bar(dates,
+           scores,
+           color='purple')
+    ax.set(xlabel="Date",
+           ylabel="Star ratings",
+           title="Star ratings over time")
+    ax.plot()
+    imgdata = StringIO()
+    fig.savefig(imgdata,format = 'svg')
+    imgdata.seek(0)
+    data = imgdata.getvalue()
+
+    return data
 
 """
 This handles saving a file from an upload to the server. It saves it in this directory as the filename.
 :param f: the file object so save
 :param fileName: String what to save the file as
 """
-
 
 def handle_uploaded_file(f, fileName):
     with open(fileName, 'wb+') as destination:

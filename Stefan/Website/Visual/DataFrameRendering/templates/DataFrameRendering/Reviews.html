@@ -91,6 +91,15 @@
     </br>
     <input type="hidden" id="page_num" name="page_num" value="{{page_num_param }}" >
      </br>
+        <p>DuplicateReivews purchase :
+    <input id="Both_duplicate" type="radio" name="Duplicate_reviews" value="Both" checked >
+    <label for="Both">Both </label>
+    <input id="Yes_duplicate" type="radio" name="Duplicate_reviews" value="Y">
+    <label for="Yes">Yes </label>
+    <input id="No_duplicate" type="radio" name="Duplicate_reviews" value="N">
+    <label for="No">No </label>
+         </p>
+    </br>
 
     <input type="submit" value="Search" style="text-align: center">
 </form>
@@ -117,7 +126,7 @@
 {%if data%}
 {%for i in data%}
 <tr>
-    <td>{{i.customer_id}}</td>
+    <td><a href="{{i.customerLinks}}">{{i.customer_id}}</a></td>
     <td>{{i.review_id}}</td>
     <td><a href={{ i.link }}>{{i.product_id}}</a></td>
     <td>{{i.product_parent}}</td>

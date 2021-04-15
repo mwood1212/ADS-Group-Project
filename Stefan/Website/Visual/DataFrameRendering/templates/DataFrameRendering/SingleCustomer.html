@@ -18,9 +18,9 @@
       <table class="table table-dark table-striped">
         <thead>
             <tr>
-                <th>Product Names</th>
-                <th>Product id</th>
+                <th>Customer id</th>
                 <th>Average score</th>
+                <th>Count</th>
             </tr>
         </thead>
         <tbody>
@@ -28,9 +28,9 @@
     {%if data%}
     {%for i in data%}
     <tr>
-        <td>{{i.names}}</td>
-        <td>{{i.product_id}}</td>
+        <td>{{i.customer_id}}</td>
         <td>{{i.scores}}</td>
+        <td>{{i.count}}</td>
     </tr>
     {%endfor%}
     {%endif%}
@@ -41,7 +41,6 @@
     <H1>
         Reasons for why this score was chosen
     </H1>
-        {{ graph|safe }}
     <H1>
         Reviews
     </H1>
