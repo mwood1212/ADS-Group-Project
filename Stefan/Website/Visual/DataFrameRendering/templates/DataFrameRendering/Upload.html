@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>TableView - Startup</title>
+  <meta charset="utf-8">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'DataFrameRendering/LocalStyles.css' %}">
+  {% include "DataFrameRendering/StyleSheets.html" %}
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="w3-content" style="max-width:2000px;margin-top:46px">
+<h1 style="text-align: center">Uploading Files</h1>
+    <p style="text-align: center">Here is where you can tailor the data to suit you</p>
+{% include "DataFrameRendering/NavBar.html" %}
+<form action="/upload/" method="post" enctype="multipart/form-data" style="margin-top: 40px; margin-left: 30%;margin-right: 30%" >
+    {% csrf_token %}
+    <input type="file" id="ReviewDataFile" name="ReviewDataFile">
+    <label for="ReviewDataFile">Select a file: Review data</label>
+    <br>
+    <input type="file" id="ProductDataFile" name="ProductDataFile">
+    <label for="ProductDataFile">Select a file: Product data</label>
+    <br>
+    <input type="file" id="CustomerDataFile" name="CustomerDataFile" >
+    <label for="CustomerDataFile">Select a file: Customer data</label>
+    <!--{{ form }}-->
+    <br>
+    <input type="submit" value="Submit" style="margin-left: 35%;margin-right: 30%;margin-top: 40px;margin-bottom: 40px">
+</form>
+</div>
+{% include "DataFrameRendering/Footer.html" %}
+</body>

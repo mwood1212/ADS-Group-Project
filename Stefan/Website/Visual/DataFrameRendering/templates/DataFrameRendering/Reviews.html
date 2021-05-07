@@ -1,0 +1,171 @@
+<!-- Write HTML code here -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>TableView - Startup</title>
+  <meta charset="utf-8">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'DataFrameRendering/LocalStyles.css' %}">
+  {% include "DataFrameRendering/StyleSheets.html" %}
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="w3-content" style="max-width:2000px;margin-top:46px">
+
+{% include "DataFrameRendering/NavBar.html" %}
+  <h2 class="text-center" style="margin-top: 30px"><u>Reviews Data</u></h2><br>
+    <p style="text-align: center">Here is a list of different reviews. There are over 2,000,000 so searches can take a little while sometimes.</p>
+    <Button class="FilterButton" onclick="toggleFilter()" style="margin-left:50px;margin-bottom:50px">Hide Filters</Button>
+<form action="/reviews/" method="get" style="margin-left:50px;margin-right:50px;margin-bottom:50px;column-count: 3;column-gap: 8%" class="FormClass">
+    <label for="customer_id">Customer id : </label>
+    <input id="customer_id" type="text" name="customer_id" value="{{ customer_id_param }}" class = "InputBox">
+    </br>
+    <label for="review_id">Review id :    </label>
+    <input id="review_id" type="text" name="review_id" value="{{ review_id_param }}" class = "InputBox">
+    </br>
+    <label for="product_id">Product id : </label>
+    <input id="product_id" type="text" name="product_id" value="{{ product_id_param }}" class = "InputBox">
+    </br>
+    <label for="product_parent">Product parent : </label>
+    <input id="product_parent" type="text" name="product_parent" value="{{ product_parent_param }}" class = "InputBox" >
+    </br>
+    <label for="product_title">Product title : </label>
+    <input id="product_title" type="text" name="product_title" value="{{ product_title_param }}" class = "InputBox" >
+    </br>
+    <label for="star_rating_min">Star rating min :</label>
+    <input id="star_rating_min" type="number" name="star_rating_min" value="{{ star_rating_min_param }}" class = "InputBox">
+    </br>
+    <label for="star_rating_max">Star rating max : </label>
+    <input id="star_rating_max" type="number" name="star_rating_max" value="{{ star_rating_max_param }}" class = "InputBox">
+    </br>
+    <label for="helpful_votes_min">Helpful votes min : </label>
+    <input id="helpful_votes_min" type="number" name="helpful_votes_min" value="{{helpful_votes_min_param }}" class = "InputBox">
+    </br>
+    <label for="helpful_votes_max">Helpful votes max : </label>
+    <input id="helpful_votes_max" type="number" name="helpful_votes_max" value="{{ helpful_votes_max_param }}" class = "InputBox">
+    </br>
+    <label for="total_votes_min">Total votes min : </label>
+    <input id="total_votes_min" type="number" name="total_votes_min" value="{{total_votes_min_param }}" class = "InputBox">
+    </br>
+    <label for="total_votes_max">Total votes max :</label>
+    <input id="total_votes_max" type="number" name="total_votes_max" value="{{ total_votes_max_param }}" class = "InputBox">
+    <p>Vine program :
+
+    <input id="Both_vine" type="radio" name="vine" value="Both" checked >
+    <label for="Both_vine">Both </label>
+    <input id="Yes_vine" type="radio" name="vine" value="Y">
+    <label for="Yes_vine">Yes </label>
+    <input id="No_vine" type="radio" name="vine" value="N">
+    <label for="No_vine">No </label>
+
+    </p>
+    <p>Verified purchase :
+    <input id="Both" type="radio" name="Verified_purchase" value="Both" checked >
+    <label for="Both">Both </label>
+    <input id="Yes" type="radio" name="Verified_purchase" value="Y">
+    <label for="Yes">Yes </label>
+    <input id="No" type="radio" name="Verified_purchase" value="N">
+    <label for="No">No </label>
+         </p>
+    </br>
+    <label for="review_headline">Review Headline : </label>
+    <input id="review_headline" type="text" name="review_headline" value="{{ review_headline_param }}" class = "InputBox">
+    </br>
+    <label for="review_body">Review Body : </label>
+    <input id="review_body" type="text" name="review_body" value="{{ review_body_param }}" class = "InputBox">
+    </br>
+    <label for="start">Start date : </label>
+    <input type="date" id="start" name="start_date"
+       value="{{ start_date_param }}"
+       min="1990-01-01" max="now" class = "InputBox">
+    </br>
+    <label for="end">End date : </label>
+    <input type="date" id="end" name="end_date" value="{{ end_date_param }}" min="1990-01-01" max="2022-01-01" >
+   </br>
+    <label for="number_per_page">Number per Page: </label>
+    <input id="number_per_page" type="number" name="number_per_page" value="{{ number_per_page_param }}" class = "InputBox">
+    </br>
+    <input type="hidden" id="page_num" name="page_num" value="{{page_num_param }}" >
+     </br>
+        <p>DuplicateReivews purchase :
+    <input id="Both_duplicate" type="radio" name="Duplicate_reviews" value="Both" checked >
+    <label for="Both">Both </label>
+    <input id="Yes_duplicate" type="radio" name="Duplicate_reviews" value="Y">
+    <label for="Yes">Yes </label>
+    <input id="No_duplicate" type="radio" name="Duplicate_reviews" value="N">
+    <label for="No">No </label>
+         </p>
+    </br>
+
+    <input type="submit" value="Search" style="text-align: center">
+</form>
+  <table class="table table-dark table-striped">
+    <thead>
+        <tr>
+            <th>Customer ID</th>
+            <th>Review ID</th>
+            <th>Product ID</th>
+            <th>Product Parent</th>
+            <th>Product Title</th>
+            <th>Star Rating</th>
+            <th>Helpful Votes</th>
+            <th>Total Votes</th>
+            <th>Vine</th>
+            <th>Verified Purchase</th>
+            <th>Review Headline</th>
+            <th>Review Body</th>
+            <th>Review Date</th>
+        </tr>
+    </thead>
+    <tbody>
+<!-- If data exists iterate through and set links and column values -->
+{%if data%}
+{%for i in data%}
+<tr>
+    <td><a href="{{i.customerLinks}}">{{i.customer_id}}</a></td>
+    <td>{{i.review_id}}</td>
+    <td><a href={{ i.link }}>{{i.product_id}}</a></td>
+    <td>{{i.product_parent}}</td>
+    <td>{{i.product_title}}</td>
+    <td>{{i.star_rating}}</td>
+    <td>{{i.helpful_votes}}</td>
+    <td>{{i.total_votes}}</td>
+    <td>{{i.vine}}</td>
+    <td>{{i.verified_purchase}}</td>
+    <td>{{i.review_headline}}</td>
+    <td>{{i.review_body}}</td>
+    <td>{{i.review_date}}</td>
+</tr>
+{%endfor%}
+{%endif%}
+</tbody>
+</table>
+</div>
+{% include "DataFrameRendering/Footer.html" %}
+<script>
+
+    var filtersShown = true;
+    var filterButton = document.getElementsByClassName("FilterButton");
+    var form = document.getElementsByClassName("FormClass");
+    // Used to toggle the menu on small screens when clicking on the menu button
+function toggleFilter() {
+    console.log(form.item(0).className);
+    if (filtersShown) {
+    filterButton.item(0).textContent = "Show Filters";
+    form.item(0).style.display = "none";
+  } else {
+    filterButton.item(0).textContent = "Hide Filters";
+    form.item(0).style.display = "inline";
+    form.item(0).style = "margin-left:50px;margin-bottom:50px;column-count: 3";
+  }
+  filtersShown = !filtersShown;
+}
+
+
+</script>
+</body>
+</html>

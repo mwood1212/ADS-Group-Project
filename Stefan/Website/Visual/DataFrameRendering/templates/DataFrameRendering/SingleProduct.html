@@ -1,0 +1,92 @@
+<!-- Write HTML code here -->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+      <title>Product Data</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      {% include "DataFrameRendering/StyleSheets.html" %}
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+    <div class="w3-content" style="max-width:2000px;margin-top:46px">
+    {% include "DataFrameRendering/NavBar.html" %}
+    <div class="container">
+      <h2 class="text-center"><u>Review Data</u></h2><br>
+      <table class="table table-dark table-striped">
+        <thead>
+            <tr>
+                <th>Product Names</th>
+                <th>Product id</th>
+                <th>Average score</th>
+            </tr>
+        </thead>
+        <tbody>
+    <!--If data exists iterate through and set links and column values-->
+    {%if data%}
+    {%for i in data%}
+    <tr>
+        <td>{{i.names}}</td>
+        <td>{{i.product_id}}</td>
+        <td>{{i.scores}}</td>
+    </tr>
+    {%endfor%}
+    {%endif%}
+    </tbody>
+    </table>
+    </div>
+
+    <H1>
+        Reasons for why this score was chosen
+    </H1>
+        {{ graph|safe }}
+    <H1>
+        Reviews
+    </H1>
+    <table class="table table-dark table-striped">
+        <thead>
+            <tr>
+                <th>Customer_id</th>
+                <th>review_id</th>
+                <th>product_id</th>
+                <th>product_parent</th>
+                <th>product_title</th>
+                <th>star_rating</th>
+                <th>helpful_votes</th>
+                <th>total_votes</th>
+                <th>vine</th>
+                <th>verified_purchase</th>
+                <th>review_headline</th>
+                <th>review_body</th>
+                <th>review_date</th>
+            </tr>
+        </thead>
+        <tbody>
+    <!-- If data exists iterate through and set links and column values -->
+    {%if reviewData%}
+    {%for i in reviewData%}
+    <tr>
+        <td>{{i.customer_id}}</td>
+        <td>{{i.review_id}}</td>
+        <td>{{i.product_id}}</td>
+        <td>{{i.product_parent}}</td>
+        <td>{{i.product_title}}</td>
+        <td>{{i.star_rating}}</td>
+        <td>{{i.helpful_votes}}</td>
+        <td>{{i.total_votes}}</td>
+        <td>{{i.vine}}</td>
+        <td>{{i.verified_purchase}}</td>
+        <td>{{i.review_headline}}</td>
+        <td>{{i.review_body}}</td>
+        <td>{{i.review_date}}</td>
+    </tr>
+    {%endfor%}
+    {%endif%}
+    </tbody>
+    </table>
+    </div>
+    {% include "DataFrameRendering/Footer.html" %}
+    </body>
+</html>
