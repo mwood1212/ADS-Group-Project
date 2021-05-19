@@ -8,6 +8,8 @@ Defines the 2 global variables that store the dataframes of the review data and 
 """
 ReviewDataFrame = None
 ProductDataFrame = None
+CustomerDataFrame = None
+ExtraDataFrame = None
 
 """
 Loads files that are uploaded to the website
@@ -18,7 +20,7 @@ Loads files that are uploaded to the website
 
 
 def loadNewData(newReviewDataString, newProductDataString, newCustomerDataString):
-    ensure_data_loaded(newReviewDataString, newProductDataString,newCustomerDataString)
+    ensure_data_loaded(newReviewDataString, newProductDataString,newCustomerDataString,"")
 
 
 """
@@ -51,6 +53,10 @@ Preprocess the dataFrames by ensuring
 """
 
 
+
+
+
+
 def pre_process_data_frame(dataFrame):
     df = dataFrame.dropna()
     df = df.reset_index(drop=True)
@@ -71,16 +77,20 @@ Note the product data frame is sorted by score and Customer data frame is sorted
 """
 
 
-def ensure_data_loaded(reviewFileLocation, productFileLocation, customerFileLocation):
+def ensure_data_loaded(reviewFileLocation, productFileLocation, customerFileLocation,extraFileLocation):
     global ReviewDataFrame
     global ProductDataFrame
     global CustomerDataFrame
-    ReviewDataFrame = load_data(reviewFileLocation, Tsv=True)
+    global ExtraDataFrame
+    ReviewDataFrame = load_data(reviewFileLocation, Tsv=False)
     ReviewDataFrame = pre_process_data_frame(ReviewDataFrame)
     ProductDataFrame = load_data(productFileLocation, Tsv=False)
     ProductDataFrame = ProductDataFrame.sort_values(["scores"])
     CustomerDataFrame = load_data(customerFileLocation, Tsv=False)
     CustomerDataFrame = CustomerDataFrame.sort_values(["count"],ascending=False)
+    if ExtraDataFrame is None:
+        ExtraDataFrame = load_data(extraFileLocation,Tsv=False)
+
 
 
 """
@@ -92,5 +102,5 @@ There will be no response until this is finished
 
 class DataframerenderingConfig(AppConfig):
     name = 'DataFrameRendering'
-    ensure_data_loaded("datav1.tsv", "ProductDataFrame.csv","CustomerDataFrame.csv")
+    ensure_data_loaded("amazon_reviews_us_Grocery_v1_00_sentiment.csv", "ProductDataFrame.csv","CustomerDataFrame.csv","labelled_df.csv")
     print("dataLoaded")

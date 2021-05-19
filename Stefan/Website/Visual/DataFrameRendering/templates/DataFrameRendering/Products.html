@@ -22,7 +22,7 @@
                     <tr>
                         <th>Product Names</th>
                         <th>Product id</th>
-                        <th>Average score</th>
+                        <th>Average review score</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -32,13 +32,17 @@
                     <tr>
                         <td><a href={{i.link}}>{{i.names}}</a></td>
                         <td>{{i.product_id}}</td>
-                        <td>{{ i.scores }}</td>
+                        <td>{{i.scores }}</td>
                     </tr>
                     {%endfor%}
                     {%endif%}
                 </tbody>
             </table>
         </div>
+    <button onclick={{next_products_url}} type="button">
+         Next page</button>
+    <button onclick={{last_products_url}} type="button">
+         Last page</button>
     {% include "DataFrameRendering/Footer.html" %}
     </body>
 </html>

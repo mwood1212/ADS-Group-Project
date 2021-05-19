@@ -1,6 +1,6 @@
 from django.shortcuts import HttpResponse
 from django.shortcuts import render
-
+import pandas as pd
 from django.views.generic import ListView
 import json
 import DataFrameRendering.apps as apps
@@ -11,6 +11,25 @@ import datetime
 import matplotlib as plt
 from matplotlib.pyplot import subplots as sub
 from io import StringIO
+import plotly.graph_objects as go
+# Import the wordcloud library
+from wordcloud import WordCloud
+from datetime import datetime
+from plotly.subplots import make_subplots
+import random
+import ipywidgets
+import nltk
+import nltk.sentiment.util
+from nltk.tokenize import sent_tokenize, word_tokenize
+import pprint
+import re
+import gensim
+import gensim.corpora as corpora
+import os
+from gensim.utils import simple_preprocess
+from nltk.corpus import stopwords
+import string
+import math
 
 # todo add a method to add links
 """
@@ -28,10 +47,13 @@ filters the dataframe and only selects the rows in the dataframe that meet the c
 """
 
 
-def filter_Data_Frame(ReviewDataFrame, context):
+def filter_Data_Frame(ReviewDataFrame, context,sample = False):
     print("Filtering data")
 
-    filteredDataFrame = apps.ReviewDataFrame.copy()
+    if not sample:
+        filteredDataFrame = apps.ReviewDataFrame.copy()
+    else:
+        filteredDataFrame = apps.ExtraDataFrame.copy()
     param = '_param'
 
     customer_id_param = context["customer_id" + param]
@@ -161,7 +183,12 @@ def get_reviews(request):
         j += 1
     filteredDataFrame["customerLinks"] = customerLinks
     print("Added links")
-
+    print( len(filteredDataFrame))
+    filteredDataFrame = run_lda_model_short(df = filteredDataFrame)
+    filteredDataFrame['health_hazard'] = filteredDataFrame['health_hazard'].fillna(0)
+    if (context[ 'health_hazard_param']):
+        filteredDataFrame = filteredDataFrame[filteredDataFrame['health_hazard'] == 1.0]
+    print(len(filteredDataFrame))
     # convert to json
     json_records = filteredDataFrame.reset_index().to_json(orient='records')
     data = json.loads(json_records)
@@ -169,6 +196,60 @@ def get_reviews(request):
     context['data'] = data
     print("About to render")
     return render(request, 'DataFrameRendering/Reviews.html', context)
+
+
+"""
+Displays the table for the sample reviews as well as the search
+:param request: the request made to the server
+:return: a render object that will be displayed on the browser
+"""
+
+
+def get_extra(request):
+    global webpageUrl
+
+    # ensure_data_loaded()
+    # creates a context object dictoniary to use
+    context = create_context(request)
+
+    # seperated for testing if parameter is a then load 10 results
+
+    filteredDataFrame = filter_Data_Frame(apps.ExtraDataFrame, context,True)
+    print(filteredDataFrame.columns)
+    print("Starting adding links")
+    # add a links feild so it can be used in the html to use the link
+    links = []
+    j = 0
+    for i, row in filteredDataFrame.iterrows():
+        links.append(webpageUrl + "/product/?id=" + filteredDataFrame.iloc[j, 1])
+        j += 1
+    filteredDataFrame["link"] = links
+    print("Added links")
+
+    # add a links feild so it can be used in the html to use the link
+    customerLinks = []
+    j = 0
+    for i, row in filteredDataFrame.iterrows():
+        customerLinks.append(webpageUrl + "/customer/?id=" + filteredDataFrame.iloc[j, 0])
+        j += 1
+    filteredDataFrame["customerLinks"] = customerLinks
+    print("Added links")
+    print( len(filteredDataFrame))
+    #filteredDataFrame = run_lda_model_short(df = filteredDataFrame)
+    #filteredDataFrame['health_hazard'] = filteredDataFrame['health_hazard'].fillna(0)
+    if (context[ 'health_hazard_param']):
+        filteredDataFrame = filteredDataFrame[filteredDataFrame['health_hazard'] == 1.0]
+    #print(len(filteredDataFrame))
+    # convert to json
+    json_records = filteredDataFrame.reset_index().to_json(orient='records')
+    data = json.loads(json_records)
+
+    context['data'] = data
+    print("About to render")
+    return render(request, 'DataFrameRendering/ReviewsExtra.html', context)
+
+
+
 
 
 """
@@ -200,13 +281,18 @@ def create_context(request):
                           'start_date' + param: request.GET.get("start_date", "dd/mm/yyyy"),
                           'end_date' + param: request.GET.get("end_date", "dd/mm/yyyy"),
                           'Duplicate_reviews' + param: request.GET.get("Duplicate_reviews", "Both"),
+                          'health_hazard' + param:request.GET.get("health_hazard", False),
                           'number_per_page' + param: request.GET.get("number_per_page", 100),
                           'page_num' + param: request.GET.get("page_num", 1),
                           "home_url": webpageUrl + "/",
                           "reviews_url": webpageUrl + "/reviews",
-                          "products_url": webpageUrl + "/products",
+                          "products_url": webpageUrl + "/products?page_num=1",
+                          "next_products_url":  "location.href=" + webpageUrl + "/products?page_num=" + str(int(request.GET.get("page_num", 1)) + 1),
+                          "last_products_url": "location.href=" + webpageUrl + "/products?page_num=" + str(int(request.GET.get("page_num", 1)) - 1),
                           "customers_url": webpageUrl + "/customers",
                           "upload_files_url": webpageUrl + "/upload",
+                          "run_model_url" : webpageUrl + "/run_model",
+                          "sample_url": webpageUrl + "/sample"
                           }
     star_ratings = [1, 2, 3, 4, 5, "1", "2", "3", "4", "5"]
     if dict_of_parameters['star_rating_min' + param] == "":
@@ -289,6 +375,9 @@ def create_context(request):
             dict_of_parameters['page_num' + param] = int(dict_of_parameters['page_num' + param])
         except:
             dict_of_parameters['page_num' + param] = 1
+
+
+
     return dict_of_parameters
 
 
@@ -303,7 +392,7 @@ def get_products(request):
     # ensure_data_loaded(reviewData=False)
     context = create_context(request)
 
-    df = apps.ProductDataFrame[:100]
+    df = apps.ProductDataFrame[100 *  (int(context["page_num_param" ])-1):100 * int(context["page_num_param"])]
 
     # add a links feild so it can be used in the html to use the link
     links = []
@@ -354,6 +443,21 @@ def get_customers(request):
     return render(request, 'DataFrameRendering/Customers.html', context)
 
 
+def word_cloud(words, max_words, colour, contour_width=3, background_color='white'):
+    # Join the different processed titles together.
+    long_string = ','.join(list(words))
+
+    # Create a WordCloud object
+    wordcloud = WordCloud(background_color=background_color, max_words=max_words,
+                          contour_width=contour_width, contour_color=colour)
+
+    # Generate a word cloud
+    wordcloud.generate(long_string)
+
+    return wordcloud
+
+
+
 """
 This displays the info for a product with an id
 :param request: the request made to the server
@@ -380,7 +484,8 @@ def get_product_with_id(request):
 
     context["reviewData"] = review_data
     context["data"] = product_data
-    context["graph"] = plot_example_grapgh (apps.ReviewDataFrame[row_numbers_review])
+    graph = review_scores_timeframe(df = apps.ReviewDataFrame[row_numbers_review],timeframe='W',xtitle = "Dates",ytitle='number of reviews',title='Average score and number of reviews per product')
+    context["graph"] = graph.to_html(full_html=False, default_height=500, default_width=700)
     return render(request, 'DataFrameRendering/SingleProduct.html', context)
 
 
@@ -410,6 +515,165 @@ def get_customer_with_id(request):
     context["reviewData"] = review_data
     context["data"] = product_data
     return render(request, 'DataFrameRendering/SingleCustomer.html', context)
+
+
+def run_model_analaysis(request):
+    context = create_context(request)
+    context["accuracy"] = run_lda_model(df =  apps.ReviewDataFrame)
+    return render(request, 'DataFrameRendering/RunModel.html', context)
+
+
+
+from nltk.stem.porter import PorterStemmer
+
+
+def run_lda_model(df):
+    stemmer = PorterStemmer()
+    try:
+        df = df.drop(["marketplace", "customer_id", "product_parent", "product_category", "review_date"], axis=1)
+    except:
+        pass
+    df = df[~df['review_body'].isnull()]
+    df['review_body'] = df['review_headline'] + '. ' + df['review_body']
+    df["health_hazard"] = np.nan
+    df = df.set_index("review_id")
+    neg_reviews = df.query("star_rating < 4", engine="python")
+    stop_words = stopwords.words('english')
+    stop_words.extend(['br'])
+    translator = str.maketrans('', '', string.punctuation)
+
+    # neg_reviews["tokened_review"] = np.nan
+    all_tokens = []
+    # neg_reviews.astype({"tokened_review": 'object'}).dtypes
+    for index, row in neg_reviews.iterrows():
+        text = row["review_body"].lower()
+        text = text.translate(translator)
+        text = word_tokenize(text)
+        new_text = []
+        for token in text:
+            token = stemmer.stem(token)
+            if token not in stop_words:
+                new_text.append(token)
+        all_tokens.append(new_text)
+    neg_reviews["tokened_review"] = all_tokens
+    hazardous_words = ["rotten", "mouldy", "moldy", "mold", "mould", "sick", "dangerous", "diarrhea", "poisoning",
+                       "stale"]
+    for word in hazardous_words:
+        neg_reviews.loc[
+            [word in tokened_review for tokened_review in neg_reviews["tokened_review"]], "health_hazard"] = 1
+    num_labeled = len(neg_reviews.query("health_hazard == 1", engine="python"))
+    non_hazardous = neg_reviews.query("health_hazard != 1 and polarity < 0", engine="python").sample(num_labeled)
+    labeled = neg_reviews.query("health_hazard == 0 or health_hazard == 1", engine="python")
+    reviews = labeled.loc[:, 'tokened_review'].values
+    y = labeled.loc[:, 'health_hazard'].values
+    for i in list(non_hazardous.index):
+        neg_reviews.loc[i, "health_hazard"] = 0
+    for i in range(len(reviews)):
+        reviews[i] = ' '.join(reviews[i])
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    matrix = TfidfVectorizer(max_features=200)
+    X = matrix.fit_transform(reviews).toarray()
+    # split train and test data
+    from sklearn.model_selection import train_test_split
+    X_train, X_test, y_train, y_test = train_test_split(X, y)
+    from sklearn.naive_bayes import GaussianNB
+    classifier = GaussianNB()
+
+    # from sklearn.linear_model import LogisticRegression
+
+    # classifier = LogisticRegression()
+
+    classifier.fit(X_train, y_train)
+
+    # Predict Class
+    y_pred = classifier.predict(X_test)
+
+    # Accuracy
+    from sklearn.metrics import accuracy_score
+    accuracy = accuracy_score(y_test, y_pred)
+
+    print(accuracy)
+    return accuracy
+
+
+
+def run_lda_model_short(df):
+    stemmer = PorterStemmer()
+    try:
+        df = df.drop(["marketplace", "customer_id", "product_parent", "product_category", "review_date"], axis=1)
+    except:
+        pass
+    df = df[~df['review_body'].isnull()]
+    df['review_body'] = df['review_headline'] + '. ' + df['review_body']
+    df["health_hazard"] = np.nan
+    df = df.set_index("review_id")
+    neg_reviews = df.query("star_rating < 4", engine="python")
+    stop_words = stopwords.words('english')
+    stop_words.extend(['br'])
+    translator = str.maketrans('', '', string.punctuation)
+
+    # neg_reviews["tokened_review"] = np.nan
+    all_tokens = []
+    # neg_reviews.astype({"tokened_review": 'object'}).dtypes
+    for index, row in df.iterrows():
+        text = row["review_body"].lower()
+        text = text.translate(translator)
+        text = word_tokenize(text)
+        new_text = []
+        for token in text:
+            token = stemmer.stem(token)
+            if token not in stop_words:
+                new_text.append(token)
+        all_tokens.append(new_text)
+    df["tokened_review"] = all_tokens
+    hazardous_words = ["rotten", "mouldy", "moldy", "mold", "mould", "sick", "dangerous", "diarrhea", "poisoning",
+                       "stale"]
+    for word in hazardous_words:
+        df.loc[
+            [word in tokened_review for tokened_review in df["tokened_review"]], "health_hazard"] = 1
+    num_labeled = len(df.query("health_hazard == 1", engine="python"))
+    non_hazardous = df.query("health_hazard != 1 and polarity < 0", engine="python").sample(num_labeled)
+    labeled = df.query("health_hazard == 0 or health_hazard == 1", engine="python")
+    reviews = labeled.loc[:, 'tokened_review'].values
+    y = labeled.loc[:, 'health_hazard'].values
+    for i in list(non_hazardous.index):
+        df.loc[i, "health_hazard"] = 0
+    for i in range(len(reviews)):
+        reviews[i] = ' '.join(reviews[i])
+
+    return df
+
+# takes a dataframe as input and the required timeframe set at default to 'D', format for which is available at
+# https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases.
+# Also take xaxis title and y axis title and graph title
+def review_scores_timeframe(df, timeframe, xtitle, ytitle, title):
+    df['review_date'] = pd.to_datetime(df['review_date'])
+    sample = df.resample(timeframe, on='review_date').review_date.count()
+    avg_score = df.resample(timeframe, on='review_date').star_rating.mean()
+    dates = sample.index
+    count = sample.values
+
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+    fig.add_trace(
+        go.Scatter(x=dates, y=count, name=ytitle),
+        secondary_y=False)
+
+    fig.add_trace(
+        go.Scatter(x=dates, y=avg_score.values, name='Average score'),
+        secondary_y=True)
+
+    # Add figure title
+    fig.update_layout(
+        xaxis_title=xtitle,
+        title_text=title
+    )
+
+    return fig
+
+
+
+
 
 
 """

@@ -100,25 +100,23 @@
     <label for="No">No </label>
          </p>
     </br>
-
+     <input type="checkbox" name="health_hazard" value="{{health_hazard_param}}">
+  <label for="health_hazard"> Health Hazards Only</label><br>
     <input type="submit" value="Search" style="text-align: center">
 </form>
   <table class="table table-dark table-striped">
     <thead>
         <tr>
             <th>Customer ID</th>
-            <th>Review ID</th>
             <th>Product ID</th>
-            <th>Product Parent</th>
             <th>Product Title</th>
             <th>Star Rating</th>
-            <th>Helpful Votes</th>
-            <th>Total Votes</th>
-            <th>Vine</th>
-            <th>Verified Purchase</th>
             <th>Review Headline</th>
             <th>Review Body</th>
             <th>Review Date</th>
+            <th>Polarity</th>
+            <th>Subjectivity</th>
+            <th>Health Hazard</th>
         </tr>
     </thead>
     <tbody>
@@ -126,19 +124,16 @@
 {%if data%}
 {%for i in data%}
 <tr>
-    <td><a href="{{i.customerLinks}}">{{i.customer_id}}</a></td>
-    <td>{{i.review_id}}</td>
+   <td><a href="{{i.customerLinks}}">{{i.customer_id}}</a></td>
     <td><a href={{ i.link }}>{{i.product_id}}</a></td>
-    <td>{{i.product_parent}}</td>
     <td>{{i.product_title}}</td>
     <td>{{i.star_rating}}</td>
-    <td>{{i.helpful_votes}}</td>
-    <td>{{i.total_votes}}</td>
-    <td>{{i.vine}}</td>
-    <td>{{i.verified_purchase}}</td>
     <td>{{i.review_headline}}</td>
     <td>{{i.review_body}}</td>
     <td>{{i.review_date}}</td>
+    <td>{{i.polarity}}</td>
+    <td>{{i.subjectivity}}</td>
+    <td>{{i.health_hazard}}</td>
 </tr>
 {%endfor%}
 {%endif%}
